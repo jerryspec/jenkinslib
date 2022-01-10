@@ -1,0 +1,19 @@
+node {
+    stage('---Download jar---') { 
+        echo "Download jar"
+        checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[cancelProcessOnExternalsFail: true, credentialsId: 'AUTH-svn', depthOption: 'infinity', ignoreExternalsOption: true, local: '.', remote: "http://xxx.xxx.xxx.xxx:8080/svn/IT/CR_Penguin-A2.0_20170727/${BranchName}"]], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']])
+    }
+    stage('---List jar---') {
+        echo "List jar file"
+        sh '''ls -1 /var/lib/jenkins/workspace/svn_build_jar/'''
+    }
+    stage('---Upload Server---') {
+        echo "Upload Server"
+        sh '''/root/jenkinsUploadShell-lin.sh'''
+    }
+    stage('---Delete ALL jar---') {
+        echo "Delete jar"
+        deleteDir()
+    }
+}
+
