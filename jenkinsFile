@@ -1,19 +1,56 @@
-node {
-    stage('---Download jar---') { 
-        echo "Download jar"
-        checkout([$class: 'SubversionSCM', additionalCredentials: [], excludedCommitMessages: '', excludedRegions: '', excludedRevprop: '', excludedUsers: '', filterChangelog: false, ignoreDirPropChanges: false, includedRegions: '', locations: [[cancelProcessOnExternalsFail: true, credentialsId: 'AUTH-svn', depthOption: 'infinity', ignoreExternalsOption: true, local: '.', remote: "http://xxx.xxx.xxx.xxx:8080/svn/IT/CR_Penguin-A2.0_20170727/${BranchName}"]], quietOperation: true, workspaceUpdater: [$class: 'UpdateUpdater']])
-    }
-    stage('---List jar---') {
-        echo "List jar file"
-        sh '''ls -1 /var/lib/jenkins/workspace/svn_build_jar/'''
-    }
-    stage('---Upload Server---') {
-        echo "Upload Server"
-        sh '''/root/jenkinsUploadShell-lin.sh'''
-    }
-    stage('---Delete ALL jar---') {
-        echo "Delete jar"
-        deleteDir()
-    }
-}
+@Library('opsShareLibrary@master') _
 
+def mytools = new org.devops.pipeline()
+def mail = new org.devops.sendMail()
+
+pipeline {
+    agent any
+    options {
+        skipDefaultCheckout true
+        buildDiscarder logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '', daysToKeepStr: '5', numToKeepStr: '10')
+    }
+    parameters {
+        string(defaultValue: 'jerry.jin@sinoeyes.com', description: '邮箱发件人收件人邮箱名', name: 'mailUser')
+        string(defaultValue: 'http://192.168.1.48:8080/svn/IT/CR_Penguin-A2.0_20170727/04.ReleaseLibrary/3.2.Releace发布版本管理', description: 'svnURL地址', name: '_SVNURL')
+    }
+      
+    stages {
+        //下载代码
+        stage("GetCode"){ 
+            failFast true
+            steps{ 
+                echo "---从SVN下载Jar文件---"
+                script{ 
+                    mytools.checksvn("${params._SVNURL}","${BranchName}")
+                }
+            }
+        }
+        stage("UploadCode"){
+            steps{
+                echo "---执行上传Jar脚本文件---"
+                sh '''/root/jenkinsUploadShell-lin.sh'''
+            }
+        }
+    }          
+    post{
+        always { 
+            echo '构建结束...!'            
+        }
+        success {
+            echo '恭喜您，构建成功！！！'
+            script{
+                listNames = listJarName("${env.WORKSPACE}")
+                mail.success("${params.mailUser}",BranchName,listNames)
+            }
+        }
+        failure {
+            echo '抱歉，构建失败！！！'
+            script{
+                mail.failure("${params.mailUser}")
+            }                
+        }
+        unstable {
+            echo '该任务已经被标记为不稳定任务....'
+        }
+    }
+}     
