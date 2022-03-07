@@ -11,7 +11,7 @@ pipeline {
     }
     parameters {
         string(defaultValue: 'jerry.jin@sinoeyes.com', description: '邮箱发件人收件人邮箱名', name: 'mailUser')
-        string(defaultValue: 'http://192.168.1.48:8080/svn/IT/CR_Penguin-A2.0_20170727/04.ReleaseLibrary/3.2.Releace发布版本管理', description: 'svnURL地址', name: '_SVNURL')
+        string(defaultValue: 'http://xxx.xxx.xxx.xxx/svn/IT/xxxxxx/xxxxxxxxxxx/xxx', description: 'svnURL地址', name: '_SVNURL')
     }
       
     stages {
